@@ -3,6 +3,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 
 import { auth } from '@/js/firebase';
 import { getAuth, createUserWithEmailAndPassword, signOut, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { useStoreNotes } from './storeNotes';
 
 export const useStoreAuth = defineStore('storeAuth', {
   state: () => {
@@ -12,15 +13,19 @@ export const useStoreAuth = defineStore('storeAuth', {
   },
   actions: {
     init() {
+      const storeNotes = useStoreNotes();
+
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          console.log("🚀 ~ file: storeAuth.js ~ line 17 ~ onAuthStateChanged ~ user", user)
+          console.log('🚀 ~ file: storeAuth.js ~ line 17 ~ onAuthStateChanged ~ user', user);
           this.user.id = user.uid;
           this.user.email = user.email;
-          this.router.push('/')
+          this.router.push('/');
+          storeNotes.init();
         } else {
           this.user = {};
-          this.router.push('/auth')
+          this.router.push('/auth');
+          storeNotes.clearNotes();
         }
       });
     },

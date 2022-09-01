@@ -1,21 +1,32 @@
 // stores/counter.js
 import { defineStore, acceptHMRUpdate } from 'pinia';
-
+import { useStoreAuth } from '@/stores/storeAuth.js';
 import { db } from '@/js/firebase';
 import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, onSnapshot, orderBy, query } from 'firebase/firestore';
 
-const notesCollectionRef = collection(db, 'notes');
+let notesCollectionRef = null;
 
-const notesCollectionQuery = query(notesCollectionRef, orderBy('date', 'desc'));
+let notesCollectionQuery = null;
+
+let getNotesSnapshot = null
 
 export const useStoreNotes = defineStore('storeNotes', {
   state: () => {
     return {
       notes: [],
-      notesLoaded: false,
+      notesLoaded: false
     };
   },
   actions: {
+    init() {
+      const storeAuth = useStoreAuth();
+
+      notesCollectionRef = collection(db, 'users', storeAuth.user.id, 'notes');
+
+      notesCollectionQuery = query(notesCollectionRef, orderBy('date', 'desc'));
+
+      this.getNotes();
+    },
     async addNote(newNoteContent) {
       let currentDate = new Date().getTime(),
         date = currentDate.toString();
@@ -35,14 +46,16 @@ export const useStoreNotes = defineStore('storeNotes', {
     },
     async getNotes() {
       this.notesLoaded = false;
-      const unsubscribe = onSnapshot(notesCollectionQuery, (querySnapshot) => {
-        console.log("🚀 ~ file: storeNotes.js ~ line 47 ~ unsubscribe ~ querySnapshot", querySnapshot)
+
+
+      getNotesSnapshot = onSnapshot(notesCollectionQuery, (querySnapshot) => {
+        console.log('🚀 ~ file: storeNotes.js ~ line 47 ~ unsubscribe ~ querySnapshot', querySnapshot);
         let notes = [];
         querySnapshot.forEach((doc) => {
           let note = {
             id: doc.id,
             content: doc.data().content,
-            date: doc.data().date,
+            date: doc.data().date
           };
           notes.push(note);
         });
@@ -50,10 +63,12 @@ export const useStoreNotes = defineStore('storeNotes', {
         setTimeout(() => {
           this.notesLoaded = true;
         }, 600);
-      });
+      })
 
-      // later on
-      // unsubscribe();
+    },
+    clearNotes() {
+      this.notes = []
+      if(getNotesSnapshot) getNotesSnapshot()
     }
   },
   // UN GETTER ES UN OBJETO, HAY QUE DEVOLVER UNA FUNCIÓN

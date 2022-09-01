@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-
+import { useStoreAuth } from '@/stores/storeAuth';
 /*
  views
 */
@@ -35,5 +35,15 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes
 });
+
+
+router.beforeEach(async (to, from) => {
+
+  const storeAuth = useStoreAuth();
+
+  if(!storeAuth.user.id && to.name !== 'auth') return { name: 'auth' }
+
+  if(storeAuth.user.id && to.name == 'auth') return false;
+})
 
 export default router;

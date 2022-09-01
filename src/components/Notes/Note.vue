@@ -7,7 +7,7 @@
         <div class="columns is-mobile has-text-grey-light mr-2">
           <small class="column ">{{ dateFormatted }}</small>
 
-          <small class="column" has-text-right> {{ characterLength }} </small>
+          <small class="column has-text-right"> {{ characterLength }} </small>
         </div>
       </div>
     </div>
